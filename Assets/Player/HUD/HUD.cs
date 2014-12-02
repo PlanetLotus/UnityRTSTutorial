@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using RTS;
+using System;
 using System.Collections;
-using RTS;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class HUD : MonoBehaviour {
     public GUISkin resourceSkin;
@@ -10,21 +12,39 @@ public class HUD : MonoBehaviour {
     public Texture2D activeCursor;
     public Texture2D selectCursor, leftCursor, rightCursor, upCursor, downCursor;
     public Texture2D[] moveCursors, attackCursors, harvestCursors;
+    public Texture2D[] resources;
 
 	// Use this for initialization
-	void Start() {
+	private void Start() {
         player = transform.root.GetComponent<Player>();
         ResourceManager.StoreSelectBoxItems(selectBoxSkin);
         SetCursorState(CursorState.Select);
+
+        resourceImages = new Dictionary<ResourceType, Texture2D>();
+        resourceValues = new Dictionary<ResourceType, int>();
+        resourceLimits = new Dictionary<ResourceType, int>();
+
+        foreach (Texture2D resource in resources) {
+            ResourceType resourceType = (ResourceType)Enum.Parse(typeof(ResourceType), resource.name);
+
+            resourceImages.Add(resourceType, resource);
+            resourceValues.Add(resourceType, 0);
+            resourceLimits.Add(resourceType, 0);
+        }
 	}
 	
-	void OnGUI() {
+	private void OnGUI() {
 	    if (player && player.Human) {
             DrawOrdersBar();
             DrawResourceBar();
             DrawMouseCursor();
         }
 	}
+
+    public void SetResourceValues(Dictionary<ResourceType, int> resourceValues, Dictionary<ResourceType, int> resourceLimits) {
+        this.resourceValues = resourceValues;
+        this.resourceLimits = resourceLimits;
+    }
 
     public bool MouseInBounds() {
         // In bounds of screen? That makes no sense. This is the HUD class. Should really be in bounds of the HUD!!
@@ -93,8 +113,23 @@ public class HUD : MonoBehaviour {
     private void DrawResourceBar() {
         GUI.skin = resourceSkin;
         GUI.BeginGroup(new Rect(0, 0, Screen.width, resourceBarHeight));
+
         GUI.Box(new Rect(0, 0, Screen.width, resourceBarHeight), "");
+        int topPos = 4, iconLeft = 4, textLeft = 20;
+        DrawResourceIcon(ResourceType.Money, iconLeft, textLeft, topPos);
+        iconLeft += textWidth;
+        textLeft += textWidth;
+        DrawResourceIcon(ResourceType.Power, iconLeft, textLeft, topPos);
+
         GUI.EndGroup();
+    }
+
+    private void DrawResourceIcon(ResourceType type, int iconLeft, int textLeft, int topPos) {
+        Texture2D icon = resourceImages[type];
+        string text = resourceValues[type].ToString() + "/" + resourceLimits[type].ToString();
+
+        GUI.DrawTexture(new Rect(iconLeft, topPos, iconWidth, iconHeight), icon);
+        GUI.Label(new Rect(textLeft, topPos, textWidth, textHeight), text);
     }
 
     private void DrawMouseCursor() {
@@ -147,6 +182,13 @@ public class HUD : MonoBehaviour {
     private const int ordersBarWidth = 150;
     private const int resourceBarHeight = 40;
     private const int selectionNameHeight = 15;
+    private const int iconWidth = 32;
+    private const int iconHeight = 32;
+    private const int textWidth = 128;
+    private const int textHeight = 32;
+    private Dictionary<ResourceType, int> resourceValues;
+    private Dictionary<ResourceType, int> resourceLimits;
+    private Dictionary<ResourceType, Texture2D> resourceImages;
 
     private Player player;
     private CursorState activeCursorState;
