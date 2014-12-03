@@ -7,9 +7,8 @@ public class Unit : WorldObject {
         base.SetHoverState(hoverObject);
 
         // Only handle input if owned by a human player and currently selected
-        if (player && player.Human && currentlySelected) {
-            if (hoverObject.name != "Ground")
-                player.Hud.SetCursorState(CursorState.Move);
+        if (player && player.Human && currentlySelected && hoverObject.name == "Ground") {
+            player.Hud.SetCursorState(CursorState.Move);
         }
     }
 

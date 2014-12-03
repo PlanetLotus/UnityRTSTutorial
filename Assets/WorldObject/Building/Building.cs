@@ -39,6 +39,14 @@ public class Building : WorldObject {
     public bool HasSpawnPoint() {
         return spawnPoint != ResourceManager.InvalidPosition && rallyPoint != ResourceManager.InvalidPosition;
     }
+
+    public override void SetHoverState(GameObject hoverObject) {
+        base.SetHoverState(hoverObject);
+
+        // Only handle input if owned by a human player and currently selected
+        if (player && player.Human && currentlySelected && hoverObject.name == "Ground" && player.Hud.GetPreviousCursorState() == CursorState.RallyPoint)
+            player.Hud.SetCursorState(CursorState.RallyPoint);
+    }
     
     protected override void Awake() {
         base.Awake();

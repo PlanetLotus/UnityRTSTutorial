@@ -16,6 +16,7 @@ public class HUD : MonoBehaviour {
     public Texture2D buttonHover, buttonClick;
     public Texture2D buildFrame, buildMask;
     public Texture2D smallButtonHover, smallButtonClick;
+    public Texture2D rallyPointCursor;
 
     // Use this for initialization
     private void Start() {
@@ -46,6 +47,10 @@ public class HUD : MonoBehaviour {
         }
     }
 
+    public CursorState GetPreviousCursorState() {
+        return previousCursorState;
+    }
+
     public void SetResourceValues(Dictionary<ResourceType, int> resourceValues, Dictionary<ResourceType, int> resourceLimits) {
         this.resourceValues = resourceValues;
         this.resourceLimits = resourceLimits;
@@ -65,7 +70,10 @@ public class HUD : MonoBehaviour {
     }
 
     public void SetCursorState(CursorState newState) {
+        if (activeCursorState != newState)
+            previousCursorState = activeCursorState;
         activeCursorState = newState;
+
         switch (newState) {
             case CursorState.Select:
                 activeCursor = selectCursor;
@@ -93,6 +101,9 @@ public class HUD : MonoBehaviour {
                 break;
             case CursorState.PanDown:
                 activeCursor = downCursor;
+                break;
+            case CursorState.RallyPoint:
+                activeCursor = rallyPointCursor;
                 break;
             default:
                 break;
@@ -186,7 +197,7 @@ public class HUD : MonoBehaviour {
         int height = buildImageHeight / 2;
 
         if (building.HasSpawnPoint() && GUI.Button(new Rect(leftPos, topPos, width, height), building.rallyPointImage)) {
-            if (activeCursorState != CursorState.RallyPoint) {
+            if (activeCursorState != CursorState.RallyPoint && previousCursorState != CursorState.RallyPoint) {
                 SetCursorState(CursorState.RallyPoint);
             } else {
                 // Hack to ensure toggle between RallyPoint and not works
@@ -246,6 +257,8 @@ public class HUD : MonoBehaviour {
         else if (activeCursorState == CursorState.Move || activeCursorState == CursorState.Select || activeCursorState == CursorState.Harvest) {
             topPos -= activeCursor.height / 2;
             leftPos -= activeCursor.width / 2;
+        } else if (activeCursorState == CursorState.RallyPoint) {
+            topPos -= activeCursor.height;
         }
 
         return new Rect(leftPos, topPos, activeCursor.width, activeCursor.height);
@@ -315,5 +328,6 @@ public class HUD : MonoBehaviour {
 
     private Player player;
     private CursorState activeCursorState;
+    private CursorState previousCursorState;
     private int currentFrame = 0;
 }

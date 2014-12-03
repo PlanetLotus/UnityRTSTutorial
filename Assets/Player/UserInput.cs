@@ -98,6 +98,8 @@ public class UserInput : MonoBehaviour {
             LeftMouseClick();
         else if (Input.GetMouseButtonDown(1))
             RightMouseClick();
+
+        MouseHover();
     }
 
     private void LeftMouseClick() {
