@@ -21,7 +21,7 @@ public class WorldObject : MonoBehaviour {
         return player && player.Equals(owner);
     }
 
-    public void SetSelection(bool selected, Rect playingArea) {
+    public virtual void SetSelection(bool selected, Rect playingArea) {
         currentlySelected = selected;
         if (selected)
             this.playingArea = playingArea;
