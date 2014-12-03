@@ -10,9 +10,15 @@ public class WorldObject : MonoBehaviour {
     public int HitPoints;
     public int MaxHitPoints;
 
-    public string[] Actions { get { return actions; } }
+    public string[] GetActions() {
+        return actions;
+    }
 
     public virtual void PerformAction(string action) {
+    }
+
+    public bool IsOwnedBy(Player owner) {
+        return player && player.Equals(owner);
     }
 
     public void SetSelection(bool selected, Rect playingArea) {
@@ -32,7 +38,7 @@ public class WorldObject : MonoBehaviour {
     public virtual void MouseClick(GameObject hitObject, Vector3 hitPoint, Player controller) {
         // Only handle input if currently selected
         if (currentlySelected && hitObject && hitObject.name != "Ground") {
-            WorldObject worldObject = hitObject.transform.root.GetComponentInChildren<WorldObject>();
+            WorldObject worldObject = hitObject.transform.parent.GetComponent<WorldObject>();
 
             // Another selectable object was clicked
             if (worldObject)

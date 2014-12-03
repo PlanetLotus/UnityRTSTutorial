@@ -109,7 +109,7 @@ public class UserInput : MonoBehaviour {
                 if (player.SelectedObject) {
                     player.SelectedObject.MouseClick(hitObject, hitPoint, player);
                 } else if (hitObject.name != "Ground") {
-                    WorldObject worldObject = hitObject.transform.root.GetComponentInChildren<WorldObject>();
+                    WorldObject worldObject = hitObject.transform.parent.GetComponent<WorldObject>();
                     if (worldObject) {
                         // We already know the player has no selected object
                         player.SelectedObject = worldObject;
