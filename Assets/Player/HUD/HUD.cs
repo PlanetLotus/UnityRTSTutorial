@@ -47,6 +47,10 @@ public class HUD : MonoBehaviour {
         }
     }
 
+    public CursorState GetCursorState() {
+        return activeCursorState;
+    }
+
     public CursorState GetPreviousCursorState() {
         return previousCursorState;
     }

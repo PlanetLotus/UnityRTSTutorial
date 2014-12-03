@@ -47,6 +47,27 @@ public class Building : WorldObject {
         if (player && player.Human && currentlySelected && hoverObject.name == "Ground" && player.Hud.GetPreviousCursorState() == CursorState.RallyPoint)
             player.Hud.SetCursorState(CursorState.RallyPoint);
     }
+
+    public override void MouseClick(GameObject hitObject, Vector3 hitPoint, Player controller) {
+        base.MouseClick(hitObject, hitPoint, controller);
+
+        // Only handle input if owned by a human player and currently selected
+        if (player && player.Human && currentlySelected && hitObject.name == "Ground") {
+            if ((player.Hud.GetCursorState() == CursorState.RallyPoint || player.Hud.GetPreviousCursorState() == CursorState.RallyPoint) && hitPoint != ResourceManager.InvalidPosition) {
+                SetRallyPoint(hitPoint);
+            }
+        }
+    }
+
+    public void SetRallyPoint(Vector3 position) {
+        rallyPoint = position;
+
+        if (player && player.Human && currentlySelected) {
+            RallyPoint flag = player.GetComponentInChildren<RallyPoint>();
+            if (flag)
+                flag.transform.localPosition = rallyPoint;
+        }
+    }
     
     protected override void Awake() {
         base.Awake();
