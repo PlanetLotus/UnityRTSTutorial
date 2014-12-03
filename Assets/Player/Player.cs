@@ -22,10 +22,14 @@ public class Player : MonoBehaviour {
         resourceLimits[type] += amount;
     }
 
-    public void AddUnit(string unitName, Vector3 spawnPoint, Quaternion rotation) {
+    public void AddUnit(string unitName, Vector3 spawnPoint, Quaternion rotation, Vector3 rallyPoint) {
         Units units = GetComponentInChildren<Units>();
         GameObject newUnit = (GameObject)Instantiate(ResourceManager.GetUnit(unitName), spawnPoint, rotation);
         newUnit.transform.parent = units.transform;
+
+        Unit unitObject = newUnit.GetComponent<Unit>();
+        if (unitObject && spawnPoint != rallyPoint)
+            unitObject.StartMove(rallyPoint);
     }
 
 	// Use this for initialization
