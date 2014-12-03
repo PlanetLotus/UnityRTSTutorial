@@ -15,6 +15,7 @@ public class HUD : MonoBehaviour {
     public Texture2D[] resources;
     public Texture2D buttonHover, buttonClick;
     public Texture2D buildFrame, buildMask;
+    public Texture2D smallButtonHover, smallButtonClick;
 
     // Use this for initialization
     private void Start() {
@@ -119,6 +120,7 @@ public class HUD : MonoBehaviour {
                 Building selectedBuilding = lastSelection.GetComponent<Building>();
                 if (selectedBuilding) {
                     DrawBuildQueue(selectedBuilding.GetBuildQueueValues(), selectedBuilding.GetBuildPercentage());
+                    DrawStandardBuildingOptions(selectedBuilding);
                 }
             }
         }
@@ -169,6 +171,28 @@ public class HUD : MonoBehaviour {
             }
 
             GUI.DrawTexture(new Rect(2 * buildImagePadding, topPos, width, height), buildMask);
+        }
+    }
+
+    private void DrawStandardBuildingOptions(Building building) {
+        GUIStyle buttons = new GUIStyle();
+        buttons.hover.background = smallButtonHover;
+        buttons.active.background = smallButtonClick;
+        GUI.skin.button = buttons;
+
+        int leftPos = buildImageWidth + scrollBarWidth + buttonSpacing;
+        int topPos = buildAreaHeight - buildImageHeight / 2;
+        int width = buildImageWidth / 2;
+        int height = buildImageHeight / 2;
+
+        if (building.HasSpawnPoint() && GUI.Button(new Rect(leftPos, topPos, width, height), building.rallyPointImage)) {
+            if (activeCursorState != CursorState.RallyPoint) {
+                SetCursorState(CursorState.RallyPoint);
+            } else {
+                // Hack to ensure toggle between RallyPoint and not works
+                SetCursorState(CursorState.PanRight);
+                SetCursorState(CursorState.Select);
+            }
         }
     }
 

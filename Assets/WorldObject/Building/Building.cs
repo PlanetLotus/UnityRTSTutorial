@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Building : WorldObject {
     public float maxBuildProgress;
+    public Texture2D rallyPointImage;
     protected Queue<string> buildQueue;
     protected Vector3 rallyPoint;
 
@@ -33,6 +34,10 @@ public class Building : WorldObject {
                     flag.Disable();
             }
         }
+    }
+
+    public bool HasSpawnPoint() {
+        return spawnPoint != ResourceManager.InvalidPosition && rallyPoint != ResourceManager.InvalidPosition;
     }
     
     protected override void Awake() {

@@ -7,7 +7,8 @@
         PanRight,
         PanUp,
         PanDown,
-        Harvest
+        Harvest,
+        RallyPoint
     }
 
     public enum ResourceType {
