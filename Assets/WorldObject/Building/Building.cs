@@ -6,6 +6,7 @@ using UnityEngine;
 public class Building : WorldObject {
     public float maxBuildProgress;
     public Texture2D rallyPointImage;
+    public Texture2D sellImage;
     protected Queue<string> buildQueue;
     protected Vector3 rallyPoint;
 
@@ -15,6 +16,16 @@ public class Building : WorldObject {
 
     public float GetBuildPercentage() {
         return currentBuildProgress / maxBuildProgress;
+    }
+
+    public void Sell() {
+        if (player)
+            player.AddResource(ResourceType.Money, SellValue);
+
+        if (currentlySelected)
+            SetSelection(false, playingArea);
+
+        Destroy(this.gameObject);
     }
 
     public override void SetSelection(bool selected, Rect playingArea) {

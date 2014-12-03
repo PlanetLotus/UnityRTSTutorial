@@ -200,13 +200,21 @@ public class HUD : MonoBehaviour {
         int width = buildImageWidth / 2;
         int height = buildImageHeight / 2;
 
-        if (building.HasSpawnPoint() && GUI.Button(new Rect(leftPos, topPos, width, height), building.rallyPointImage)) {
-            if (activeCursorState != CursorState.RallyPoint && previousCursorState != CursorState.RallyPoint) {
-                SetCursorState(CursorState.RallyPoint);
-            } else {
-                // Hack to ensure toggle between RallyPoint and not works
-                SetCursorState(CursorState.PanRight);
-                SetCursorState(CursorState.Select);
+        if (GUI.Button(new Rect(leftPos, topPos, width, height), building.sellImage)) {
+            building.Sell();
+        }
+
+        if (building.HasSpawnPoint()) {
+            leftPos += width + buttonSpacing;
+
+            if (GUI.Button(new Rect(leftPos, topPos, width, height), building.rallyPointImage)) {
+                if (activeCursorState != CursorState.RallyPoint && previousCursorState != CursorState.RallyPoint) {
+                    SetCursorState(CursorState.RallyPoint);
+                } else {
+                    // Hack to ensure toggle between RallyPoint and not works
+                    SetCursorState(CursorState.PanRight);
+                    SetCursorState(CursorState.Select);
+                }
             }
         }
     }
