@@ -12,7 +12,9 @@
     }
 
     public enum ResourceType {
+        Unknown,
         Money,
-        Power
+        Power,
+        Ore
     }
 }
