@@ -10,6 +10,8 @@ public class WorldObject : MonoBehaviour {
     public int HitPoints;
     public int MaxHitPoints;
 
+    public Bounds SelectionBounds { get { return selectionBounds; } }
+
     public string[] GetActions() {
         return actions;
     }
