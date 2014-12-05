@@ -3,12 +3,25 @@ using RTS;
 using System.Collections;
 
 public class Unit : WorldObject {
+    public virtual void Init(Building creator) {
+    }
+
     public override void SetHoverState(GameObject hoverObject) {
         base.SetHoverState(hoverObject);
 
         // Only handle input if owned by a human player and currently selected
-        if (player && player.Human && currentlySelected && hoverObject.name == "Ground") {
-            player.Hud.SetCursorState(CursorState.Move);
+        if (player && player.Human && currentlySelected) {
+            bool moveHover = false;
+            if (hoverObject.name == "Ground") {
+                moveHover = true;
+            } else {
+                Resource resource = hoverObject.transform.parent.GetComponent<Resource>();
+                if (resource && resource.IsEmpty())
+                    moveHover = true;
+            }
+
+            if (moveHover)
+                player.Hud.SetCursorState(CursorState.Move);
         }
     }
 
@@ -16,10 +29,19 @@ public class Unit : WorldObject {
         base.MouseClick(hitObject, hitPoint, controller);
 
         // Only handle input if owned by a human player and currently selected
-        if (player && player.Human && currentlySelected && hitObject.name == "Ground" && hitPoint != ResourceManager.InvalidPosition) {
-            float y = hitPoint.y + player.SelectedObject.transform.position.y;
-            Vector3 destination = new Vector3(hitPoint.x, y, hitPoint.z);
-            StartMove(destination);
+        if (player && player.Human && currentlySelected) {
+            bool clickedOnEmptyResource = false;
+            if (hitObject.transform.parent) {
+                Resource resource = hitObject.transform.parent.GetComponent<Resource>();
+                if (resource && resource.IsEmpty())
+                    clickedOnEmptyResource = true;
+            }
+
+            if ((hitObject.name == "Ground" || clickedOnEmptyResource) && hitPoint != ResourceManager.InvalidPosition) {
+                float y = hitPoint.y + player.SelectedObject.transform.position.y;
+                Vector3 destination = new Vector3(hitPoint.x, y, hitPoint.z);
+                StartMove(destination);
+            }
         }
     }
 

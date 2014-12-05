@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Resource : WorldObject {
     public float Capacity;
+    public ResourceType ResourceType { get { return resourceType; } }
 
     public void Remove(float amount) {
         amountLeft -= amount;
@@ -20,7 +21,10 @@ public class Resource : WorldObject {
         resourceType = ResourceType.Unknown;
     }
 
-    public ResourceType ResourceType { get { return resourceType; } }
+    protected override void CalculateCurrentHealth() {
+        healthPercentage = amountLeft / Capacity;
+        healthStyle.normal.background = ResourceManager.GetResourceHealthBar(resourceType);
+    }
 
     protected float amountLeft;
     protected ResourceType resourceType;

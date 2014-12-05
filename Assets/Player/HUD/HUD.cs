@@ -17,11 +17,13 @@ public class HUD : MonoBehaviour {
     public Texture2D buildFrame, buildMask;
     public Texture2D smallButtonHover, smallButtonClick;
     public Texture2D rallyPointCursor;
+    public Texture2D healthy, damaged, critical;
+    public Texture2D[] resourceHealthBars;
 
     // Use this for initialization
     private void Start() {
         player = transform.root.GetComponent<Player>();
-        ResourceManager.StoreSelectBoxItems(selectBoxSkin);
+        ResourceManager.StoreSelectBoxItems(selectBoxSkin, healthy, damaged, critical);
         SetCursorState(CursorState.Select);
 
         resourceImages = new Dictionary<ResourceType, Texture2D>();
@@ -37,6 +39,20 @@ public class HUD : MonoBehaviour {
         }
 
         buildAreaHeight = Screen.height - resourceBarHeight - selectionNameHeight - 2 * buttonSpacing;
+
+        Dictionary<ResourceType, Texture2D> resourceHealthBarTextures = new Dictionary<ResourceType, Texture2D>();
+        foreach (Texture2D healthBar in resourceHealthBars) {
+            switch (healthBar.name) {
+                case "ore":
+                    resourceHealthBarTextures.Add(ResourceType.Ore, healthBar);
+                    break;
+                default:
+                    // Should probably throw exception here because that means we forgot to add an image
+                    break;
+            }
+        }
+
+        ResourceManager.SetResourceHealthBarTextures(resourceHealthBarTextures);
     }
 
     private void OnGUI() {
@@ -120,7 +136,7 @@ public class HUD : MonoBehaviour {
 
         GUI.Box(new Rect(buildImageWidth + scrollBarWidth, 0, ordersBarWidth, Screen.height - resourceBarHeight), "");
 
-        string selectionName = null;
+        string selectionName = "";
         if (player.SelectedObject) {
             selectionName = player.SelectedObject.ObjectName;
 
@@ -139,9 +155,6 @@ public class HUD : MonoBehaviour {
                 }
             }
         }
-
-        if (selectionName != null)
-            GUI.Label(new Rect(0, 10, ordersBarWidth, selectionNameHeight), selectionName);
 
         if (selectionName != "") {
             int leftPos = buildImageWidth + scrollBarWidth / 2;
