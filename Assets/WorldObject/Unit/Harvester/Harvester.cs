@@ -7,8 +7,8 @@ public class Harvester : Unit {
     public float collectionAmount;
     public float depositAmount;
 
-    public override void Init(Building creator) {
-        base.Init(creator);
+    public override void SetBuilding(Building creator) {
+        base.SetBuilding(creator);
         ResourceStore = creator;
     }
 

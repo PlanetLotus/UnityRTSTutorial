@@ -79,6 +79,25 @@ public class Building : WorldObject {
                 flag.transform.localPosition = rallyPoint;
         }
     }
+
+    public void StartConstruction() {
+        CalculateBounds();
+        needsBuilding = true;
+        HitPoints = 0;
+    }
+
+    public bool UnderConstruction() {
+        return needsBuilding;
+    }
+
+    public void Construct(int amount) {
+        HitPoints += amount;
+        if (HitPoints >= MaxHitPoints) {
+            HitPoints = MaxHitPoints;
+            needsBuilding = false;
+            RestoreMaterials();
+        }
+    }
     
     protected override void Awake() {
         base.Awake();
@@ -102,6 +121,9 @@ public class Building : WorldObject {
     
     protected override void OnGUI() {
         base.OnGUI();
+
+        if (needsBuilding)
+            DrawBuildProgress();
     }
 
     protected void CreateUnit(string unitName) {
@@ -118,6 +140,18 @@ public class Building : WorldObject {
         }
     }
 
+    private void DrawBuildProgress() {
+        GUI.skin = ResourceManager.SelectBoxSkin;
+        Rect selectBox = WorkManager.CalculateSelectionBox(selectionBounds, playingArea);
+
+        // Draw selection box around currently selected object
+        GUI.BeginGroup(playingArea);
+        CalculateCurrentHealth(0.5f, 0.99f);
+        DrawHealthBar(selectBox, "Building ...");
+        GUI.EndGroup();
+    }
+
     private float currentBuildProgress = 0f;
     private Vector3 spawnPoint;
+    private bool needsBuilding = false;
 }

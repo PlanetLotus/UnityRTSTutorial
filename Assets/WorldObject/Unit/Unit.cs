@@ -3,7 +3,7 @@ using RTS;
 using System.Collections;
 
 public class Unit : WorldObject {
-    public virtual void Init(Building creator) {
+    public virtual void SetBuilding(Building creator) {
     }
 
     public override void SetHoverState(GameObject hoverObject) {
@@ -45,7 +45,7 @@ public class Unit : WorldObject {
         }
     }
 
-    public void StartMove(Vector3 dest) {
+    public virtual void StartMove(Vector3 dest) {
         destination = dest;
         targetRotation = Quaternion.LookRotation(dest - transform.position);
         rotating = true;
