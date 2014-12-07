@@ -10,6 +10,9 @@ public class WorldObject : MonoBehaviour {
     public int SellValue;
     public int HitPoints;
     public int MaxHitPoints;
+    public float WeaponRange = 10f;
+    public float WeaponRechargeTime = 1f;
+    public float WeaponAimSpeed = 1f;
 
     public Bounds SelectionBounds { get { return selectionBounds; } }
 
@@ -33,9 +36,30 @@ public class WorldObject : MonoBehaviour {
     public virtual void SetHoverState(GameObject hoverObject) {
         // Only handle input if owned by a human player and currently selected
         if (player && player.Human && currentlySelected) {
-            if (hoverObject.name != "Ground")
-                player.Hud.SetCursorState(CursorState.Select);
+            if (hoverObject.name != "Ground") {
+                Player owner = hoverObject.transform.root.GetComponent<Player>();
+                Unit unit = hoverObject.transform.parent.GetComponent<Unit>();
+                Building building = hoverObject.transform.parent.GetComponent<Building>();
+
+                if (owner) {
+                    if (owner.Username == player.Username)
+                        player.Hud.SetCursorState(CursorState.Select);
+                    else if (CanAttack())
+                        player.Hud.SetCursorState(CursorState.Attack);
+                    else
+                        player.Hud.SetCursorState(CursorState.Select);
+                } else if (unit || building && CanAttack()) {
+                    player.Hud.SetCursorState(CursorState.Attack);
+                } else {
+                    player.Hud.SetCursorState(CursorState.Select);
+                }
+            }
         }
+    }
+
+    public virtual bool CanAttack() {
+        // Default behavior to be overridden by children
+        return false;
     }
     
     public virtual void MouseClick(GameObject hitObject, Vector3 hitPoint, Player controller) {
@@ -47,8 +71,22 @@ public class WorldObject : MonoBehaviour {
             if (worldObject) {
                 Resource resource = hitObject.transform.parent.GetComponent<Resource>();
 
-                if (!resource || !resource.IsEmpty())
+                if (resource && resource.IsEmpty())
+                    return;
+
+                Player owner = hitObject.transform.root.GetComponent<Player>();
+                if (owner) {
+                    if (player && player.Human) {
+                        if (player.Username != owner.Username && CanAttack())
+                            BeginAttack(worldObject);
+                        else
+                            ChangeSelection(worldObject, controller);
+                    } else {
+                        ChangeSelection(worldObject, controller);
+                    }
+                } else {
                     ChangeSelection(worldObject, controller);
+                }
             }
         }
     }
@@ -94,6 +132,12 @@ public class WorldObject : MonoBehaviour {
         player = transform.root.GetComponentInChildren<Player>();
     }
 
+    public void TakeDamage(int damage) {
+        HitPoints -= damage;
+        if (HitPoints <= 0)
+            Destroy(gameObject);
+    }
+
     protected virtual void Awake() {
         selectionBounds = ResourceManager.InvalidBounds;
         CalculateBounds();
@@ -101,15 +145,36 @@ public class WorldObject : MonoBehaviour {
 
 	protected virtual void Start() {
         SetPlayer();
+
+        if (player)
+            SetTeamColor();
 	}
 	
 	protected virtual void Update() {
-	
+        currentWeaponChargeTime += Time.deltaTime;
+        if (isAttacking && !isMovingIntoPosition && !isAiming)
+            PerformAttack();
 	}
 
     protected virtual void OnGUI() {
         if (currentlySelected)
             DrawSelection();
+    }
+
+    protected virtual void BeginAttack(WorldObject target) {
+        this.target = target;
+        if (TargetInRange()) {
+            isAttacking = true;
+            PerformAttack();
+        } else {
+            AdjustPosition();
+        }
+    }
+
+    protected void SetTeamColor() {
+        TeamColor[] teamColors = GetComponentsInChildren<TeamColor>();
+        foreach (TeamColor teamColor in teamColors)
+            teamColor.renderer.material.color = player.TeamColor;
     }
 
     protected virtual void DrawSelectionBox(Rect selectBox) {
@@ -135,6 +200,15 @@ public class WorldObject : MonoBehaviour {
         GUI.Label(new Rect(selectBox.x, selectBox.y - 7, selectBox.width * healthPercentage, 5), label, healthStyle);
     }
 
+    protected virtual void AimAtTarget() {
+        isAiming = true;
+        // This behavior needs to be specified by an object
+    }
+
+    protected virtual void UseWeapon() {
+        currentWeaponChargeTime = 0f;
+    }
+
     protected Player player;
     protected string[] actions = {};
     protected bool currentlySelected = false;
@@ -142,6 +216,69 @@ public class WorldObject : MonoBehaviour {
     protected Rect playingArea = new Rect(0.0f, 0.0f, 0.0f, 0.0f);
     protected GUIStyle healthStyle = new GUIStyle();
     protected float healthPercentage = 1f;
+    protected WorldObject target = null;
+    protected bool isAttacking = false;
+    protected bool isMovingIntoPosition = false;
+    protected bool isAiming = false;
+
+    private bool TargetInRange() {
+        Vector3 targetLocation = target.transform.position;
+        Vector3 direction = targetLocation - transform.position;
+        if (direction.sqrMagnitude < WeaponRange * WeaponRange) {
+            return true;
+        }
+        return false;
+    }
+
+    private void AdjustPosition() {
+        Unit self = this as Unit;
+        if (self) {
+            isMovingIntoPosition = true;
+            Vector3 attackPosition = FindNearestAttackPosition();
+            self.StartMove(attackPosition);
+            isAttacking = true;
+        } else {
+            isAttacking = false;
+        }
+    }
+
+    private Vector3 FindNearestAttackPosition() {
+        Vector3 targetLocation = target.transform.position;
+        Vector3 direction = targetLocation - transform.position;
+        float targetDistance = direction.magnitude;
+        float distanceToTravel = targetDistance - 0.9f * WeaponRange;
+
+        return Vector3.Lerp(transform.position, targetLocation, distanceToTravel / targetDistance);
+    }
+
+    private void PerformAttack() {
+        if (!target) {
+            isAttacking = false;
+            return;
+        }
+
+        if (!TargetInRange())
+            AdjustPosition();
+        else if (!TargetInFrontOfWeapon())
+            AimAtTarget();
+        else if (IsReadyToFire())
+            UseWeapon();
+    }
+
+    private bool IsReadyToFire() {
+        if (currentWeaponChargeTime >= WeaponRechargeTime)
+            return true;
+        return false;
+    }
+
+    private bool TargetInFrontOfWeapon() {
+        Vector3 targetLocation = target.transform.position;
+        Vector3 direction = targetLocation - transform.position;
+
+        if (direction.normalized == transform.forward.normalized)
+            return true;
+        return false;
+    }
 
     private void ChangeSelection(WorldObject worldObject, Player controller) {
         SetSelection(false, playingArea);
@@ -163,4 +300,5 @@ public class WorldObject : MonoBehaviour {
     }
 
     private List<Material> oldMaterials = new List<Material>();
+    private float currentWeaponChargeTime;
 }

@@ -96,6 +96,7 @@ public class Building : WorldObject {
             HitPoints = MaxHitPoints;
             needsBuilding = false;
             RestoreMaterials();
+            SetTeamColor();
         }
     }
     

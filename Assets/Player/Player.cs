@@ -14,6 +14,7 @@ public class Player : MonoBehaviour {
     public int startPower;
     public int startPowerLimit;
     public Material notAllowedMaterial, allowedMaterial;
+    public Color TeamColor;
 
     public void AddResource(ResourceType type, int amount) {
         resources[type] += amount;
