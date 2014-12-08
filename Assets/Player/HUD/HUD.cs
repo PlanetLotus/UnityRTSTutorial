@@ -243,7 +243,7 @@ public class HUD : MonoBehaviour {
     private void DrawMouseCursor() {
         bool mouseOverHud = !MouseInBounds() && activeCursorState != CursorState.PanRight && activeCursorState != CursorState.PanUp;
 
-        if (mouseOverHud) {
+        if (mouseOverHud || ResourceManager.MenuOpen) {
             Screen.showCursor = true;
         } else {
             Screen.showCursor = false;
