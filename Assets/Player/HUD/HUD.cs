@@ -19,6 +19,7 @@ public class HUD : MonoBehaviour {
     public Texture2D rallyPointCursor;
     public Texture2D healthy, damaged, critical;
     public Texture2D[] resourceHealthBars;
+    public GUISkin playerDetailsSkin;
 
     // Use this for initialization
     private void Start() {
@@ -57,6 +58,7 @@ public class HUD : MonoBehaviour {
 
     private void OnGUI() {
         if (player && player.Human) {
+            DrawPlayerDetails();
             DrawOrdersBar();
             DrawResourceBar();
             DrawMouseCursor();
@@ -128,6 +130,28 @@ public class HUD : MonoBehaviour {
             default:
                 break;
         }
+    }
+
+    private void DrawPlayerDetails() {
+        GUI.skin = playerDetailsSkin;
+        GUI.BeginGroup(new Rect(0, 0, Screen.width, Screen.height));
+
+        float height = ResourceManager.TextHeight;
+        float leftPos = ResourceManager.Padding;
+        float topPos = Screen.height - height - ResourceManager.Padding;
+
+        Texture2D avatar = PlayerManager.GetPlayerAvatar();
+        if (avatar) {
+            GUI.DrawTexture(new Rect(leftPos, topPos, height, height), avatar);
+            leftPos += height + ResourceManager.Padding;
+        }
+
+        float minWidth = 0, maxWidth = 0;
+        string playerName = PlayerManager.GetPlayerName();
+
+        playerDetailsSkin.GetStyle("label").CalcMinMaxWidth(new GUIContent(playerName), out minWidth, out maxWidth);
+        GUI.Label(new Rect(leftPos, topPos, maxWidth, height), playerName);
+        GUI.EndGroup();
     }
 
     private void DrawOrdersBar() {
